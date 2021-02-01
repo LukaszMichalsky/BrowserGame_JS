@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Game</title>
+	<meta charset="utf-8">
+	<style type="text/css">
+		h1
+		{
+			background-image: url(grafika/silver.jpg);
+			background-size:105% 100% ; 
+			color: #383838;
+		}
+		button
+		{
+			background-image: url(grafika/oak.jpg); 
+			background-size: 70% ; 
+			color: cornsilk;
+		}
+		#legenda
+		{
+			color: #E6E6FA;
+			position:absolute;
+			left:920px;
+			top:170px;
+			height:500px;
+			width: 300px;
+			background-image: url(grafika/planks.jpg);
+
+		}
+		b
+		{
+			color: #EEEE;
+			font-size: 20px;
+		}	
+
+		.mini
+		{	
+			width: 35px;
+			height: 35	px;
+		}
+
+
+	</style>
+
+	<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+
+	<script type="text/javascript">
+		var sec=0,min=0,score=0,inter, repkill,reprep;
+		var newx,newy;//coordy gemow
+		var xh=0,yh=260;//herocoords
+		var xb1=850,yb1=0;//coordy bossa1
+		var xb2=850,yb2=550;//coordy bossa2
+		var audio = new Audio('muzyka/dmg.mp3');
+		var soundtrack = new Audio('muzyka/runaway.mp3');
+		function format(str,size)//ladny 2cyfrowy wynik czas i 3 cyfrowy wyniku
+		{
+			str=str.toString();
+			return str.length < size ? format("0"+str,size) :str;
+		}
+
+		function time()//naliczanie czasu i wyniku
+		{
+			sec++;
+			if(sec%3==0)
+				score++;
+
+			if(sec==60)
+			{
+				sec=0;
+				min++;
+			}
+			$("#watch").text('Time: '+format(min,2)+':'+format(sec,2));
+			$("#score").text('Score: '+format(score,3));
+		}
+
+		function repeat()//funcja do pojawiania i znikania min i ruszania zombiakami oraz z warunkami przegranej
+		{
+				$('.mine').animate({opacity:0},1500).delay(3000).animate({opacity:1.0},2500);
+				$('#stupid1').animate({left:"600px"},2500).animate({left:"200px"},2500);
+				$('#stupid2').animate({top:"200px"},1200).animate({top:"100px"},1200);
+				$('#stupid3').animate({left:"500px",top: "400px"},1500).animate({left:"700px", top: "200px"},1500);
+
+				let pos1 = $('#stupid1').position();
+				let pos2 = $('#stupid2').position();
+				let pos3 = $('#stupid3').position();
+
+
+				if(Math.sqrt(Math.pow(xh -pos1.left, 2) + Math.pow(yh - pos1.top, 2)) < 15 ||
+				   Math.sqrt(Math.pow(xh -pos2.left, 2) + Math.pow(yh - pos2.top, 2)) < 15 ||
+				   Math.sqrt(Math.pow(xh -pos3.left, 2) + Math.pow(yh - pos3.top, 2)) < 15
+				)
+					over();
+
+				if (Math.sqrt(Math.pow(xh - newx, 2) + Math.pow(yh - newy, 2)) < 25) //zbieranie gemow tutaj poniewaz najkrotszy intrval
+                	{
+                	score+=5;	
+                	gemcollect();
+                	}
+
+                if ((Math.sqrt(Math.pow(xh - 180, 2) + Math.pow(yh - 110, 2)) < 15 || 
+                	 Math.sqrt(Math.pow(xh - 250, 2) + Math.pow(yh - 320, 2)) < 15 || 
+                	 Math.sqrt(Math.pow(xh - 600, 2) + Math.pow(yh - 100, 2)) < 15 ||
+                	 Math.sqrt(Math.pow(xh - 670, 2) + Math.pow(yh - 460, 2)) < 25)&&
+                	 $('.mine').css('opacity') >0.3) //if ktory spprawdza odleglosc gracza od min oraz czy miny sa widosczne
+                {
+                	over();
+
+                }
+
+            if (Math.sqrt(Math.pow(xh - xb1, 2) + Math.pow(yh - yb1, 2)) < 10 || Math.sqrt(Math.pow(xh - xb2, 2) + Math.pow(yh - yb2, 2)) < 14) //wzór na odległość 2 punktów na płaszczyźnie
+            {
+            	audio.play();
+               over();
+            }
+		}
+
+		
+		function gemcollect()
+		{
+			
+			newx= Math.floor(Math.random() * 850);
+			newy= Math.floor(Math.random() * 550);
+			$("#gem").css({left:newx,top:newy,opacity:1.0});
+
+		}
+
+		 $(function () {//funkcja glowna 
+
+		 		
+            $(document).keydown(function (e) {//porsznanie bohaterem
+            	if (e.which == 39 && xh <= 900 - 40) xh += 5;
+                if (e.which == 37 && xh > 0) xh -= 5;
+                if (e.which == 40 && yh <= 600 - 40 ) yh += 5;
+                if (e.which == 38 && yh>0 ) yh -= 5;
+
+
+                $('#hero').css({ left: xh + 'px', top: yh + 'px' });  
+              
+
+
+            });
+
+
+             $("#play").click(function () {//zaczynainie zabawy
+             	soundtrack.play();
+             	soundtrack.volume = 0.1; 
+             	inter = setInterval(time,1000);
+             	repkill =setInterval(kill,100);
+             	reprep = setInterval(repeat,1);
+				$("#play").css({ display: 'none' });
+                $("#play").blur();
+				gemcollect();
+
+
+                
+			});
+
+
+             $("#reset").click(function(){//resetowanie po porzegranej
+             	location.reload()
+             });
+});            
+
+		 function kill()//funkcja do ruchu przeciwnikami inteligennymi
+		{
+			if (xb1 > xh) xb1 -= 5;
+            if (xb1 < xh) xb1 += 5;            
+            if (yb1 > yh) yb1 -= 5;
+            if (yb1 < yh) yb1 += 5;
+
+            if (xb2 > xh) xb2 -= 7;
+            if (xb2 < xh) xb2 += 7;            
+            if (yb2 > yh) yb2 -= 7;
+            if (yb2 < yh) yb2 += 7;
+
+            $('#boss1').css({ left: xb1 + 'px', top: yb1 + 'px' });
+
+            $('#boss2').css({ left: xb2 + 'px', top: yb2 + 'px' });
+		}
+	
+		function over()//czynnosci po przegranej
+		{
+			audio.play();
+			$('#legenda').html('<h1 style="top: 50%;left: 50%;">Game Over</h1>');
+
+			clearInterval(repkill); //wyłaczenie działania potwora
+            clearInterval(repeat);
+            clearInterval(inter);
+            $("#reset").css({display:'inline'});
+
+           
+		}
+		
+
+	</script>
+		
+</head>
+<body background="grafika/bg.jpg">
+<!--tlo bohater i inteligenci-->
+<img src="grafika/bricks.jpg" style="position:absolute;opacity:0.8;top: 0px;left: 0px;height: 600px;width: 900px">
+<img id="hero" src="grafika/hero.jpg" style="position: absolute;height: 40px;width: 40px;top:260px;left: 0px">
+<img id="boss1" src="grafika/boss.jpg " style="position: absolute;height: 50px;width: 50px;top: 0px;left: 850px">
+<img id="boss2" src="grafika/boss.jpg " style="position: absolute;height: 50px;width: 50px;top: 550px;left: 850px">
+<!--glupie stwory-->
+<img id="stupid1" src="grafika/stupid.jpg " style="position: absolute;height: 35px;width: 35px;top: 500px;left: 200px">
+<img id="stupid2" src="grafika/stupid.jpg " style="position: absolute;height: 35px;width: 35px;top: 100px;left: 450px">
+<img id="stupid3" src="grafika/stupid.jpg " style="position: absolute;height: 35px;width: 35px;top: 200px;left: 700px">
+
+
+<!--miny-->
+<img class="mine" src="grafika/mine.jpg" style="position: absolute;height: 40px;width: 40px;top: 110px;left: 180px">
+<img class="mine" src="grafika/mine.jpg" style="position: absolute;height: 40px;width: 40px;top: 320px;left: 250px">
+<img class="mine" src="grafika/mine.jpg" style="position: absolute;height: 40px;width: 40px;top: 100px;left: 600px">
+<img class="mine" src="grafika/mine.jpg" style="position: absolute;height: 40px;width: 40px;top: 460px;left: 670px">
+
+<!--guziki i wyniki i gem-->
+<img id="gem" src="grafika/gem.gif" style="position: absolute;height: 40px;width: 40px;opacity: 0">
+
+<button style="position: absolute;top: 120px;left: 920px;font-size: 20px" id="play" type="button">Play</button>
+<button style="position: absolute;top: 120px;left: 980px;font-size: 20px;display: none;" id="reset" type="button">Reset</button>
+<h1 id="watch" style="position:absolute;left:920px;top:0px">Time: 00:00</h1>
+<h1 id="score" style="position:absolute;left:920px;top:50px">Score: 000</h1>
+<div id="legenda" style="text-align: center;">
+	<b>Legenda</b>
+	<br /><br />
+	<img src="grafika/hero.jpg" class="mini">	
+	<br />
+	To jest Twój bohater. Przetrwaj jak najdłużej.
+	<br />
+	<img src="grafika/gem.gif" class="mini">	
+	<br />
+	Zbieraj gemy, żeby zdobywać punkty.
+	<br /><br />
+	<b>Przeciwnicy</b>
+	<br />
+	<img src="grafika/boss.jpg" class="mini">	
+	<br />
+	Ci przeciwnicy będą Cię gonić ucieknij im jeśli zdołasz.
+	<br />
+	<img src="grafika/stupid.jpg" class="mini">	
+	<br />
+	Są z pozoru niegroźni i poruszją się po określonych torach, ale czasem potrafią przeszkodzić.
+	<br />
+	<img src="grafika/mine.jpg" class="mini">
+	<br />
+	Miny pojawiają się i znikają. Podczas gdy są niewidoczne są niegroźne. Jeśli masz dobrą pamięć to z łatwościa ich unkniesz.
+	
+
+
+</p>
+
+</div>
+</body>
+</html>
+
+
+

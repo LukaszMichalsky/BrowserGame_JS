@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Test</title>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script> <!--Odwołanie do biblioteki JQuery. Można plik ściągnąć do swojego serwisu.-->
+    <script type="text/javascript">
+            var xb = 100, yb = 100; //współrzędne początkowe bohatera, widoczne w całym skrypcie
+            var xp = 600, yp = 500; //współrzędne początkowe potwora
+            var automat; //zmienna globalna na automat zdarzeń czasowych
+        $(function () {
+
+            $(document).keydown(function (e) { //zdarzenie naciśnięcia klawisza
+                if (e.which == 39 /* kod klawisza -> */ && xb <= 700 - 50 /* blokada ucieczki w prawo */) xb += 5;
+                if (e.which == 37 /* kod klawisza <- */ && xb > 0 /* blokada ucieczki w lewo */) xb -= 5;
+                if (e.which == 40 && yb <= 600 - 50 ) yb += 5;
+                if (e.which == 38 && yb>0 ) yb -= 5;
+                $('#bohater').css({ left: xb + 'px', top: yb + 'px' });  //do wartości musi być doklejona jednostka np. px
+            });
+
+            $("#start").click(function () {
+                $("#start").css({ display: 'none' });
+                $("#start").blur(); // zdjęcie aktywności z przycisku, aby nie przejmował na siebie zdarzeń keydown
+                automat = setInterval(Goń, 40); //automatyczne wywołanie funkcji Goń co 40 ms, 25 razy na sekundę
+                                                    //zapamiętanie w zmiennej globalnej automat uchwytu zegara, w celu jego późniejszego zatrzymania
+            });
+
+        });
+
+        // "Sztuczna inteligencja"  potwora
+        function Goń()
+        {
+            if (xp > xb) xp -= 4;
+            if (xp < xb) xp += 4;            
+            if (yp > yb) yp -= 4;
+            if (yp < yb) yp += 4;
+
+            $('#potwor').css({ left: xp + 'px', top: yp + 'px' });
+
+            //Wykrycie kontaktu, wymagana tolerancja
+            if (Math.sqrt(Math.pow(xb - xp, 2) + Math.pow(yb - yp, 2)) < 10) //wzór na odległość 2 punktów na płaszczyźnie
+            {
+                clearInterval(automat); //wyłaczenie działania potwora
+                alert('Game over');
+            }
+        }
+    </script>
+
+</head>
+<body>
+    <img src="plansza.jpg" style="position:absolute;left:0px;top:0px;width:700px;height:600px" />
+    <img id="bohater" src="bohater.gif" style="position:absolute;left:100px;top:100px;width:50px;height:50px" />
+    <img id="potwor" src="potwor.gif" style="position:absolute;left:600px;top:500px;width:50px;height:50px" />
+
+    <button id="start" type="button" style="position:absolute;left:50px;top:500px">Start</button>
+    <button id="reset" >Reset</button>
+</body>
+</html>
